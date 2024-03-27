@@ -1,21 +1,54 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using Object = UnityEngine.Object;
 
 namespace Space3x.NavigateBack.Editor
 {
+    /// <summary>
+    /// Provides a simple way to navigate back and forward in the editor's selection history
+    /// of objects of type <typeparamref name="T"/>.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class GenericNavigator<T> where T : class
     {
-        private Stack<WeakReference<T>> _backStack = new Stack<WeakReference<T>>();
-        private Stack<WeakReference<T>> _forwardStack = new Stack<WeakReference<T>>();
-        private T _activeItem;
+        /// <summary>
+        /// Maximum number of items in the stack
+        /// </summary>
+        public int StackSize { get; set; } = 50;
         
-        public GenericNavigator()
+        private Stack<WeakReference<T>> m_BackStack = new Stack<WeakReference<T>>();
+        private Stack<WeakReference<T>> m_ForwardStack = new Stack<WeakReference<T>>();
+        private T m_ActiveItem;
+        
+        /// <summary>
+        /// Creates a new <see cref="GenericNavigator{T}"/>
+        /// </summary>
+        public GenericNavigator() => RegisterCallbacks(true);
+        
+        /// <summary>
+        /// Cleans up
+        /// </summary>
+        ~GenericNavigator()
         {
-            RegisterCallbacks(true);
+            try
+            {
+                RegisterCallbacks(false);
+                m_BackStack.Clear();
+                m_ForwardStack.Clear();
+                m_ActiveItem = null;
+            }
+            catch (Exception _)
+            {
+                // ignored
+            }
         }
 
+        /// <summary>
+        /// Registers or unregisters the callback
+        /// </summary>
+        /// <param name="register"></param>
         private void RegisterCallbacks(bool register)
         {
             Selection.selectionChanged -= OnSelectionChanged;
@@ -23,19 +56,30 @@ namespace Space3x.NavigateBack.Editor
                 Selection.selectionChanged += OnSelectionChanged;
         }
         
+        /// <summary>
+        /// Callback when the selection changes
+        /// </summary>
         private void OnSelectionChanged()
         {
             T activeItem = Selection.activeObject as T;
-            if (activeItem == null || _activeItem == activeItem) return;
-            TryPeekFrom(ref _backStack, out T backPeek);
+            if (activeItem == null || m_ActiveItem == activeItem) return;
+            TryPeekFrom(ref m_BackStack, out T backPeek);
             
-            if (_activeItem != null && (backPeek == null || backPeek != _activeItem))
-                _backStack.Push(new WeakReference<T>(_activeItem));
+            if (m_ActiveItem != null && (backPeek == null || backPeek != m_ActiveItem))
+                m_BackStack.Push(new WeakReference<T>(m_ActiveItem));
             
-            _activeItem = activeItem;
-            _forwardStack.Clear();
+            m_ActiveItem = activeItem;
+            if (m_BackStack.Count > StackSize + 10) 
+                m_BackStack = new Stack<WeakReference<T>>(m_BackStack.TakeLast(StackSize));
+            m_ForwardStack.Clear();
         }
         
+        /// <summary>
+        /// Try to peek from the stack
+        /// </summary>
+        /// <param name="stack"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
         private bool TryPeekFrom(ref Stack<WeakReference<T>> stack, out T value)
         {
             if (stack.TryPeek(out WeakReference<T> weakReference))
@@ -47,6 +91,12 @@ namespace Space3x.NavigateBack.Editor
             return false;
         }
 
+        /// <summary>
+        /// Try to pop from the stack
+        /// </summary>
+        /// <param name="stack"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
         private bool TryPopTargetFrom(ref Stack<WeakReference<T>> stack, out T value)
         {
             value = null;
@@ -65,42 +115,53 @@ namespace Space3x.NavigateBack.Editor
             return false;
         }
 
+        /// <summary>
+        /// Navigates
+        /// </summary>
+        /// <param name="steps"></param>
         private void Navigate(int steps = -1)
         {
             switch (Math.Sign(steps))
             {
                 case -1:
-                    if (_activeItem != null && TryPopTargetFrom(ref _backStack, out T target))
+                    if (m_ActiveItem != null && TryPopTargetFrom(ref m_BackStack, out T target))
                     {
-                        _forwardStack.Push(new WeakReference<T>(_activeItem));
-                        _activeItem = target;
+                        m_ForwardStack.Push(new WeakReference<T>(m_ActiveItem));
+                        m_ActiveItem = target;
                     }
                     break;
                         
                 case 1:
-                    if (_activeItem != null && TryPopTargetFrom(ref _forwardStack, out target))
+                    if (m_ActiveItem != null && TryPopTargetFrom(ref m_ForwardStack, out target))
                     {
-                        _backStack.Push(new WeakReference<T>(_activeItem));
-                        _activeItem = target;
+                        m_BackStack.Push(new WeakReference<T>(m_ActiveItem));
+                        m_ActiveItem = target;
                     }
                     break;
                 default:
                     break;
             }
-            SelectTransform(_activeItem);
+            Select(m_ActiveItem);
         }
 
-        private void SelectTransform(T target)
-        {
-            Selection.activeObject = target as Object;
-        }
+        /// <summary>
+        /// Selects
+        /// </summary>
+        /// <param name="target"></param>
+        private void Select(T target) => Selection.activeObject = target as Object;
+
+        /// <summary>
+        /// Navigate back
+        /// </summary>
+        public void Back() => Navigate(m_BackStack.Count > 0 ? -1 : 0);
         
-        public void Back() => Navigate(_backStack.Count > 0 ? -1 : 0);
+        public bool CanGoBack() => m_BackStack.Count > 0;
         
-        public bool CanGoBack() => _backStack.Count > 0;
+        /// <summary>
+        /// Navigate forward
+        /// </summary>
+        public void Forward() => Navigate(m_ForwardStack.Count > 0 ? 1 : 0);
         
-        public void Forward() => Navigate(_forwardStack.Count > 0 ? 1 : 0);
-        
-        public bool CanGoForward() => _forwardStack.Count > 0;
+        public bool CanGoForward() => m_ForwardStack.Count > 0;
     }
 }
