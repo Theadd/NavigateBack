@@ -7,10 +7,16 @@ Navigate back and forward in editor's selection history the same way you do in y
 Just import it into your project and... that's all, zero-config.
 
 
-## Usage
+## Usage (in Unity 6000.0 and newer versions)
 
 * `Edit > Navigate Back` (<kbd>ALT</kbd> + <kbd>LEFT ARROW</kbd>)
 * `Edit > Navigate Forward` (<kbd>ALT</kbd> + <kbd>RIGHT ARROW</kbd>)
+
+
+## Usage (in previous versions)
+
+* `Edit > Navigate Back` (<kbd>CTRL</kbd> + <kbd>ALT</kbd> + <kbd>LEFT ARROW</kbd>)
+* `Edit > Navigate Forward` (<kbd>CTRL</kbd> + <kbd>ALT</kbd> + <kbd>RIGHT ARROW</kbd>)
 
 
 ## Customize
