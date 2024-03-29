@@ -70,7 +70,7 @@ namespace Space3x.NavigateBack.Editor
             
             m_ActiveItem = activeItem;
             if (m_BackStack.Count > StackSize + 10) 
-                m_BackStack = new Stack<WeakReference<T>>(m_BackStack.TakeLast(StackSize));
+                m_BackStack = new Stack<WeakReference<T>>(m_BackStack.Skip(m_BackStack.Count - StackSize));
             m_ForwardStack.Clear();
         }
         
@@ -82,8 +82,9 @@ namespace Space3x.NavigateBack.Editor
         /// <returns></returns>
         private bool TryPeekFrom(ref Stack<WeakReference<T>> stack, out T value)
         {
-            if (stack.TryPeek(out WeakReference<T> weakReference))
+            if (stack.Count > 0)
             {
+                WeakReference<T> weakReference = stack.Peek();
                 if (weakReference.TryGetTarget(out value))
                     return value != null;
             }
@@ -102,9 +103,7 @@ namespace Space3x.NavigateBack.Editor
             value = null;
             while (stack.Count > 0)
             {
-                if (!stack.TryPop(out WeakReference<T> weakReference))
-                    return false;
-                
+                WeakReference<T> weakReference = stack.Pop();
                 if (weakReference.TryGetTarget(out T target) && target != null)
                 {
                     value = target;
