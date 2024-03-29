@@ -1,6 +1,6 @@
 {
   "name": "com.space3x.navigtateback",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "displayName": "Navigate Back",
   "description": "Navigate back and forward in editor's selection history the same way you do in your IDE.",
   "unity": "2020.3",
