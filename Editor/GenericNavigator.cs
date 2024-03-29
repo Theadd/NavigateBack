@@ -39,7 +39,7 @@ namespace Space3x.NavigateBack.Editor
                 m_ForwardStack.Clear();
                 m_ActiveItem = null;
             }
-            catch (Exception _)
+            catch (Exception)
             {
                 // ignored
             }
