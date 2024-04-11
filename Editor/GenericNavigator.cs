@@ -147,7 +147,12 @@ namespace Space3x.NavigateBack.Editor
         /// Selects
         /// </summary>
         /// <param name="target"></param>
-        private void Select(T target) => Selection.activeObject = target as Object;
+        private void Select(T target)
+        {
+            Selection.activeObject = target as Object;
+            if (!Selection.activeObject) return;
+            EditorGUIUtility.PingObject(Selection.activeObject);
+        }
 
         /// <summary>
         /// Navigate back
