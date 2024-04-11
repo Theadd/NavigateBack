@@ -1,4 +1,6 @@
 ﻿using UnityEditor;
+using UnityEditor.ShortcutManagement;
+using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace Space3x.NavigateBack.Editor
@@ -11,8 +13,10 @@ namespace Space3x.NavigateBack.Editor
         static SelectionNavigator() {}
         
 #if UNITY_6000_0_OR_NEWER
+        [Shortcut("Edit/Navigate Back", null, KeyCode.LeftArrow, ShortcutModifiers.Alt)]
         [MenuItem("Edit/Navigate Back &LEFT", false, priority: 0)]
 #else
+        [Shortcut("Edit/Navigate Back", null, KeyCode.LeftArrow, ShortcutModifiers.Alt | ShortcutModifiers.Control)]
         [MenuItem("Edit/Navigate Back ^&LEFT", false, priority: 0)]
 #endif
         public static void Back() => m_Navigator.Back();
@@ -25,8 +29,10 @@ namespace Space3x.NavigateBack.Editor
         public static bool CanGoBack() => m_Navigator.CanGoBack();
         
 #if UNITY_6000_0_OR_NEWER
+        [Shortcut("Edit/Navigate Forward", null, KeyCode.RightArrow, ShortcutModifiers.Alt)]
         [MenuItem("Edit/Navigate Forward &RIGHT", false, priority: 0)]
 #else
+        [Shortcut("Edit/Navigate Forward", null, KeyCode.RightArrow, ShortcutModifiers.Alt | ShortcutModifiers.Control)]
         [MenuItem("Edit/Navigate Forward ^&RIGHT", false, priority: 0)]
 #endif
         public static void Forward() => m_Navigator.Forward();
